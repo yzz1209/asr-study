@@ -1,0 +1,28 @@
+ASR 学习框架（与 1_ASR学习路径.pdf 对齐）
+
+目标：
+1) 能复现：把指标/算法/推理跑通，并能稳定复现结果
+2) 能解释：能用自己的话讲清楚“为什么会这样”
+3) 能决策：能设计 A/B 测试，做取舍与工程化落地
+
+目录约定：
+00_admin        规划与自查（不放代码产物）
+01_metrics      CER/WER 等文本指标与实现（Week 1-2）
+02_srt          SRT 解析/对齐前的数据规范（Week 1-2）
+03_alignment    时间对齐指标与算法（IoU/DTW/FA 相关，Week 1-2 & Week 7-8）
+04_audio        音频基础与 VAD（Week 3-4）
+05_inference    ASR 推理实验与参数消融（Week 5-6）
+06_papers       论文精读与复现记录（Month 3）
+07_training     训练/微调/数据增强（Month 4-5）
+08_engineering  性能优化、量化、并行、缓存、服务化（Month 6）
+
+数据与结果：
+data/raw_audio  放原始音频（建议 wav, 16k, mono）
+data/srt        放 origin.srt / asr.srt 等字幕文件
+results         所有实验导出的表格/日志/图片统一放这里
+
+推荐工作流（每个小任务都按这个闭环）：
+1) 先写一个最小可运行脚本（跑通）
+2) 再补一个对比实验（baseline vs 改动）
+3) 输出一个可复现实验结果（保存到 results/）
+4) 按 00_admin/每周自查清单.txt 做验收

@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+*.egg-info/
+.DS_Store
+
+# generated lesson artifacts (keep committed sample plot if present)
+asr_learning/data/raw_audio/*.wav
+asr_learning/results/*.json
+asr_learning/results/*.html
+asr_learning/results/*.png
+asr_learning/results/*.txt
+!asr_learning/results/.gitkeep

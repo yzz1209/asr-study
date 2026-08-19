@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>ASR 字幕质量报告（学习版 / 对照真实管线）</title>
+<style>
+    :root { --bg:#0f1419; --card:#1a2330; --text:#e8eef6; --muted:#93a4b8; --acc:#5eead4; --warn:#fbbf24; }
+    body { margin:0; font-family:"Noto Sans SC","PingFang SC",sans-serif; background:var(--bg); color:var(--text); }
+    header { padding:32px 40px 8px; }
+    h1 { margin:0 0 8px; font-size:28px; }
+    .sub { color:var(--muted); max-width:900px; line-height:1.5; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; padding:16px 40px 48px; }
+    .card { background:var(--card); border-radius:14px; padding:18px 20px; box-shadow:0 10px 30px #0006; }
+    h2 { margin:0 0 12px; font-size:16px; color:var(--acc); letter-spacing:.04em; }
+    table.kv { width:100%; border-collapse:collapse; }
+    table.kv th { text-align:left; color:var(--muted); font-weight:500; padding:6px 8px 6px 0; width:48%; }
+    table.kv td { padding:6px 0; }
+    ul { margin:8px 0 0; padding-left:18px; color:#d5e0ec; }
+    li { margin:6px 0; }
+    .pipe { font-size:13px; color:var(--muted); line-height:1.6; }
+    .kpi { font-size:32px; font-weight:700; }
+    .warn { color:var(--warn); }
+    code { background:#0b1220; padding:1px 6px; border-radius:6px; }
+    </style></head><body>
+<header>
+  <h1>ASR 字幕质量报告（学习版 / 对照真实管线）</h1>
+  <p class="sub">用 origin.srt vs asr.srt 走一遍真实字幕 ASR 的评估闭环：文本 CER、时间轴 IoU、方案A MeanErr、语言瓶颈热词、幻觉后处理、自适应路由。这是报表页的学习版，对应生产 Gateway 后面的质量报告。</p>
+  <p class="pipe">音频 PCM 16k/16bit → VAD（生产 Silero / 学习能量阈值） → 双模型：Belle(Whisper Attention 文本) + Paraformer(CTC/NAR 时间戳) → A2 垂直路径：方案A 文本级 FA（Belle 文本贴 Paraformer 时间戳） → 幻觉过滤：BoH / 无重叠 / n-gram / logprob → Gateway 出 SRT + 报表页</p>
+</header>
+<section class="grid">
+  <article class="card"><h2>文本 CER</h2>
+    <div class="kpi warn">50.6%</div>
+    <table class="kv"><tr><th>去标点 CER</th><td>50.6%</td></tr><tr><th>含标点 CER</th><td>56.3%</td></tr><tr><th>替换 / 插入 / 删除</th><td>85 / 4 / 585</td></tr><tr><th>ref 字数 / hyp 字数</th><td>1331 / 750</td></tr></table>
+  </article>
+  <article class="card"><h2>时间轴对齐</h2>
+    <table class="kv"><tr><th>Precision</th><td>90.5%</td></tr><tr><th>Recall</th><td>47.1%</td></tr><tr><th>origin 段 / ASR 段</th><td>223 / 116</td></tr><tr><th>未匹配 origin / ASR</th><td>118 / 11</td></tr><tr><th>起始偏移中位数</th><td>-85 ms</td></tr></table>
+  </article>
+  <article class="card"><h2>方案 A / A2 FA</h2>
+    <table class="kv"><tr><th>MeanErr</th><td>295 ms</td></tr><tr><th>&lt; 800ms</th><td>是</td></tr><tr><th>覆盖率</th><td>99.6%</td></tr><tr><th>对齐字符</th><td>1326</td></tr></table>
+  </article>
+  <article class="card"><h2>自适应路由</h2>
+    <table class="kv"><tr><th>route</th><td>paraformer_plus_fa</td></tr><tr><th>对白密度</th><td>0.19</td></tr><tr><th>平均 CPS</th><td>4.85</td></tr><tr><th>长间隙比</th><td>0.14</td></tr></table>
+    <p class="sub">中等噪声/切段不稳：Paraformer 拿时间戳 + 方案A 把 Belle 文本贴上去</p>
+  </article>
+  <article class="card"><h2>怎么读这份报告</h2><ul><li>CER(去标点)=50.6% 而时间轴 recall=47.1% / precision=90.5%。 CER 高 + recall 低 = 漏了大段对白，不是单纯同音错字。</li><li>漏段：origin 大量段没被 ASR 覆盖（VAD 过猛 / 模型吞词 / 切段粒度差）</li><li>漂移：偏移随时间变大，优先查分段累计误差 / 变声变速 / FA 失败</li><li>语言层瓶颈候选热词：先歇歇脚、内生乾坤、力破神庭、十二灵宫、可谁料到、周天既成、天行有常、封灵止煞</li><li>方案A MeanErr=295ms（PDF 门槛 800ms，达标）</li><li>字面对得上但轴对不上 6 条（切段/IoU，不是幻觉）；真幻觉候选 4 条（无 origin 文本或 BoH/重复）。</li></ul></article>
+  <article class="card"><h2>语言瓶颈 · 替换</h2><ul><li><code>啊</code> → <code>呀</code> ×2</li><li><code>境</code> → <code>镜</code> ×2</li><li><code>灵</code> → <code>凌</code> ×2</li><li><code>相</code> → <code>象</code> ×2</li><li><code>它</code> → <code>他</code> ×2</li><li><code>雾</code> → <code>物</code> ×2</li><li><code>临</code> → <code>陵</code> ×2</li><li><code>圆</code> → <code>呵</code> ×2</li><li><code>煞</code> → <code>沙</code> ×2</li><li><code>入</code> → <code>树</code> ×1</li></ul></article>
+  <article class="card"><h2>语言瓶颈 · 热词候选</h2><ul><li><code>先歇歇脚</code></li><li><code>内生乾坤</code></li><li><code>力破神庭</code></li><li><code>十二灵宫</code></li><li><code>可谁料到</code></li><li><code>周天既成</code></li><li><code>天行有常</code></li><li><code>封灵止煞</code></li><li><code>慢点慢点</code></li><li><code>我就知道</code></li><li><code>日月递炤</code></li><li><code>灵汇气海</code></li><li><code>灵相化形</code></li><li><code>炙炎吐息</code></li><li><code>烈焰灼魂</code></li><li><code>疾行如电</code></li><li><code>给我滚开</code></li><li><code>说来就来</code></li><li><code>身灵合一</code></li><li><code>金光护体</code></li></ul></article>
+  <article class="card"><h2>轴切错（字在 origin 里）</h2><ul><li>#44: 呀，</li><li>#46: 什么话</li><li>#49: 这大荒，</li><li>#59: 原来</li><li>#69: 不知姑娘</li><li>#73: 因违反司规</li></ul></article>
+  <article class="card"><h2>幻觉候选</h2><ul><li>#9 no_origin_overlap: 哎呀，</li><li>#42 no_origin_overlap: 命进取，</li><li>#83 no_origin_overlap: 呵呵呵，</li><li>#116 no_origin_overlap: 受灭口。</li></ul></article>
+</section>
+</body></html>

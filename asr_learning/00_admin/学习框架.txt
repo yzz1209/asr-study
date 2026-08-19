@@ -1,28 +1,31 @@
-ASR 学习框架（与 1_ASR学习路径.pdf 对齐）
+# ASR 学习框架（对照真实字幕 ASR 管线）
 
-目标：
-1) 能复现：把指标/算法/推理跑通，并能稳定复现结果
-2) 能解释：能用自己的话讲清楚“为什么会这样”
-3) 能决策：能设计 A/B 测试，做取舍与工程化落地
+目标不变，但对象从「玩具脚本」换成「你们生产字幕链路的迷你版」：
 
-目录约定：
-00_admin        规划与自查（不放代码产物）
-01_metrics      CER/WER 等文本指标与实现（Week 1-2）
-02_srt          SRT 解析/对齐前的数据规范（Week 1-2）
-03_alignment    时间对齐指标与算法（IoU/DTW/FA 相关，Week 1-2 & Week 7-8）
-04_audio        音频基础与 VAD（Week 3-4）
-05_inference    ASR 推理实验与参数消融（Week 5-6）
-06_papers       论文精读与复现记录（Month 3）
-07_training     训练/微调/数据增强（Month 4-5）
-08_engineering  性能优化、量化、并行、缓存、服务化（Month 6）
+1. 能复现：指标 / 对齐 / VAD / 方案A / 后处理能在本仓库稳定跑出同样数字
+2. 能解释：CER 56% 但 IoU precision 90% 意味着什么，该查哪一层
+3. 能决策：Belle-only vs Paraformer+FA vs 强过滤，以及要不要上 Qwen-Audio-3.0
 
-数据与结果：
-data/raw_audio  放原始音频（建议 wav, 16k, mono）
-data/srt        放 origin.srt / asr.srt 等字幕文件
-results         所有实验导出的表格/日志/图片统一放这里
+## 目录
 
-推荐工作流（每个小任务都按这个闭环）：
-1) 先写一个最小可运行脚本（跑通）
-2) 再补一个对比实验（baseline vs 改动）
-3) 输出一个可复现实验结果（保存到 results/）
-4) 按 00_admin/每周自查清单.txt 做验收
+00_admin        规划、自查、**生产管线对照表**
+01_metrics      CER/WER + 语言瓶颈拆解（Week 1-2）
+02_srt          SRT 规范 / CPS / origin vs asr 段统计（Week 1-2）
+03_alignment    IoU 匹配、漏段诊断、DTW、**方案A 文本级 FA**（Week 1-2 & 7-8）
+04_audio        16k PCM、能量 VAD、Mel、SpecAugment 直觉（Week 3-4）
+05_inference    CTC vs Attention、解码消融、幻觉检测（Week 5-6）
+06_papers       Whisper / WhisperX / Paraformer / Calm-Whisper / Qwen3-ASR
+07_training     热词词典、SpecAugment、领域适配（Month 4-5）
+08_engineering  自适应路由、Profiling、学习版 Gateway+报表页（Month 6）
+lib             被上面课程共用的实现（对照生产模块）
+pipeline        一键质量报告 = 生产「ASR report page」的学习版
+data/srt        origin.sample.srt / asr.sample.srt（真实样本，不是玩具句）
+results         实验导出
+
+## 闭环
+
+1. 最小脚本跑通
+2. baseline vs 改动
+3. 结果落到 `asr_learning/results/`
+4. 用 `00_admin/每周自查清单.txt` 验收
+5. 打开 `asr_learning/results/asr_report.html` 讲给别人听

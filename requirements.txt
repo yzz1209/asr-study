@@ -1,0 +1,6 @@
+# ASR 学习项目依赖
+# 绝大多数脚本仅使用 Python 3 标准库（argparse/json/wave/audioop/re/dataclasses 等），
+# 仅时间轴对齐脚本的 --plot 选项需要 matplotlib 绘制时间轴图。
+# 注意：04_audio/vad_energy_wav.py 依赖标准库 audioop，该模块在 Python 3.13 被移除，
+# 因此本项目需运行在 Python 3.12。
+matplotlib>=3.8,<4
